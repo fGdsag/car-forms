@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Справочник форм автомобилей</title>
+  <style>
+    * { box-sizing: border-box; }
+    :root {
+      --bg: #f5f7fb; --card: #fff; --ink: #1b2130; --muted: #667085;
+      --line: #e5e9f0; --accent: #2f5bea; --accent-soft: #e8eeff;
+      --danger: #d92d20; --danger-soft: #fdecea;
+      --ok: #12b76a; --radius: 14px;
+      --shadow: 0 6px 24px rgba(20,30,60,.06);
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    body {
+      margin: 0; font-family: var(--font); background: var(--bg); color: var(--ink);
+      line-height: 1.6; -webkit-font-smoothing: antialiased;
+      min-height: 100vh; display: flex; flex-direction: column;
+    }
+    #app { flex: 1; padding-top: 28px; padding-bottom: 48px; }
+    .container { width: 100%; max-width: 1180px; margin: 0 auto; padding: 0 20px; }
+    .site-header {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(255,255,255,.92); backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--line);
+    }
+    .header-inner { display: flex; align-items: center; justify-content: space-between; height: 62px; }
+    .logo { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 18px; color: var(--ink); text-decoration: none; }
+    .site-header nav { display: flex; gap: 6px; }
+    .site-header nav a { padding: 8px 14px; border-radius: 10px; text-decoration: none; color: var(--muted); font-weight: 600; font-size: 14.5px; transition: .15s; }
+    .site-header nav a:hover,
+    .site-header nav a.active { color: var(--accent); background: var(--accent-soft); }
+    .site-footer { background: #fff; border-top: 1px solid var(--line); padding: 20px 0; text-align: center; color: var(--muted); font-size: 14px; }
+    
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      padding: 10px 16px; border-radius: 10px; font-size: 14.5px; font-weight: 600;
+      text-decoration: none; cursor: pointer; border: 1px solid var(--line);
+      background: #fff; color: var(--ink); transition: .15s; font-family: inherit;
+    }
+    .btn:hover { border-color: #cfd6e4; background: #fafbff; }
+    .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .btn.primary:hover { background: #2448c8; }
+    .btn.danger { color: var(--danger); border-color: #f3c3be; }
+    .btn.danger:hover { background: var(--danger-soft); }
+    .btn.sm { padding: 6px 11px; font-size: 13px; border-radius: 8px; }
+    .btn.disabled { opacity: 0.5; pointer-events: none; }
+
+    .tag {
+      display: inline-block; font-size: 12px; font-weight: 700;
+      padding: 3px 9px; border-radius: 7px;
+      background: var(--accent-soft); color: var(--accent);
+      text-transform: uppercase; letter-spacing: .3px;
+    }
+    
+    .toolbar { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; align-items: center; }
+    .form-control {
+      padding: 10px 14px; border-radius: 10px; border: 1px solid var(--line);
+      font-size: 14.5px; font-family: inherit; background: #fff; color: var(--ink); outline: none;
+    }
+    .form-control:focus { border-color: var(--accent); }
+    .toolbar input { flex: 1; min-width: 200px; }
+    
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+    .card {
+      display: flex; flex-direction: column; background: var(--card);
+      border-radius: var(--radius); overflow: hidden;
+      border: 1px solid var(--line); box-shadow: var(--shadow);
+      text-decoration: none; color: inherit; transition: .2s;
+    }
+    .card:hover { transform: translateY(-3px); box-shadow: 0 14px 30px rgba(20,30,60,.1); }
+    .card-img { aspect-ratio: 16/10; background: #eef1f8; overflow: hidden; }
+    .card-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .card-body { padding: 20px; display: flex; flex-direction: column; flex: 1; gap: 10px; }
+    .card-body h3 { margin: 0; font-size: 18px; font-weight: 700; }
+    .card-body p { margin: 0; color: var(--muted); font-size: 14px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+    .card-footer { margin-top: auto; padding-top: 12px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; color: var(--muted); font-size: 13px; }
+    
+    .pagination { display: flex; justify-content: center; align-items: center; gap: 16px; margin-top: 32px; }
+    
+    .form-view-grid { display: grid; grid-template-columns: 1.1fr 1fr; gap: 40px; align-items: start; }
+    .gallery-main { aspect-ratio: 16/10; background: #eef1f8; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line); margin-bottom: 12px; }
+    .gallery-main img { width: 100%; height: 100%; object-fit: cover; }
+    .gallery-thumbs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
+    .thumb { width: 70px; height: 50px; border-radius: 6px; overflow: hidden; border: 2px solid transparent; cursor: pointer; opacity: 0.6; flex-shrink: 0; }
+    .thumb.active { border-color: var(--accent); opacity: 1; }
+    .thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .view-info { display: flex; gap: 16px; color: var(--muted); font-size: 14px; margin-bottom: 16px; }
+    
+    .auth-box { max-width: 400px; margin: 60px auto; background: #fff; padding: 32px; border-radius: var(--radius); border: 1px solid var(--line); box-shadow: var(--shadow); }
+    .auth-box h2 { margin: 0 0 24px; text-align: center; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+    .form-group label { font-weight: 600; font-size: 14px; }
+    
+    .admin-layout { display: grid; grid-template-columns: 220px 1fr; gap: 28px; align-items: start; }
+    .admin-nav { position: sticky; top: 86px; display: flex; flex-direction: column; gap: 4px; }
+    .admin-nav a { padding: 10px 14px; border-radius: 8px; text-decoration: none; color: var(--ink); font-weight: 600; font-size: 14.5px; }
+    .admin-nav a:hover { background: #eef1f8; }
+    .admin-nav a.active { background: var(--accent-soft); color: var(--accent); }
+    
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 32px; }
+    .stat-card { background: #fff; padding: 20px; border-radius: var(--radius); border: 1px solid var(--line); box-shadow: var(--shadow); }
+    .stat-card div { color: var(--muted); font-size: 14px; font-weight: 600; }
+    .stat-card h3 { margin: 8px 0 0; font-size: 28px; font-weight: 800; color: var(--accent); }
+    
+    .table-wrapper { background: #fff; border-radius: var(--radius); border: 1px solid var(--line); box-shadow: var(--shadow); overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14.5px; }
+    th { background: #f8fafc; padding: 14px 18px; font-weight: 600; border-bottom: 1px solid var(--line); color: var(--muted); }
+    td { padding: 14px 18px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    
+    .upload-area { border: 2px dashed var(--line); padding: 24px; text-align: center; border-radius: var(--radius); cursor: pointer; background: #fafbff; transition: .15s; }
+    .upload-area:hover { border-color: var(--accent); }
+    .preview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 12px; margin-top: 12px; }
+    .preview-item { position: relative; aspect-ratio: 1; border-radius: 8px; overflow: hidden; border: 1px solid var(--line); }
+    .preview-item img { width: 100%; height: 100%; object-fit: cover; }
+    .preview-item .remove-img { position: absolute; top: 4px; right: 4px; width: 22px; height: 22px; background: rgba(0,0,0,0.6); color: #fff; border: none; border-radius: 50%; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+    
+    .toast { position: fixed; bottom: 24px; right: 24px; background: var(--ink); color: #fff; padding: 12px 20px; border-radius: 10px; font-size: 14.5px; font-weight: 600; box-shadow: 0 8px 32px rgba(0,0,0,0.15); z-index: 1000; display: none; }
+    
+    @media (max-width: 900px) {
+      .form-view-grid, .admin-layout { grid-template-columns: 1fr; }
+      .admin-nav { position: static; flex-direction: row; overflow-x: auto; margin-bottom: 16px; }
+      .admin-nav a { flex-shrink: 0; }
+    }
+    @media (max-width: 560px) {
+      .toolbar { flex-direction: column; align-items: stretch; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="#/" class="logo">🚗 <span>Формы авто</span></a>
+      <nav id="site-nav">
+        <a href="#/" id="nav-home">Каталог</a>
+        <a href="#/admin" id="nav-admin">Админ-панель</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="app" class="container">
+    <div style="text-align:center; padding: 40px; color: var(--muted);"><h2>Загрузка…</h2></div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>Учебный проект · HTML / CSS / JS · localStorage</p>
+    </div>
+  </footer>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    const K = {
+      forms: 'cf_forms',
+      cats: 'cf_cats',
+      counter: 'cf_id',
+      admin: 'cf_adm_session'
+    };
+
+    const DEFAULT_IMG = "data:image/svg+xml,%3Csvg xmlns='http://w3.org' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect width='100%25' height='100%25' fill='%23eef1f8'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='12' fill='%23667085'%3EНет фото%3C/text%3E%3C/svg%3E";
+
+    const defaultCats = [
+      { id: 1, name: "Классические" },
+      { id: 2, name: "Внедорожные" },
+Используйте код с осторожностью.
+{ id: 3, name: "Спортивные" }
+];
+const defaultForms = [
+{ id: 1, name: "Седан", catId: 1, desc: "Трехобъемный кузов с изолированным багажником.", views: 12, images: [] },
+{ id: 2, name: "Внедорожник", catId: 2, desc: "Двухобъемный закрытый кузов с полным приводом и увеличенным просветом.", views: 34, images: [] },
+{ id: 3, name: "Купе", catId: 3, desc: "Закрытый двухдверный кузов с укороченной базой.", views: 56, images: [] }
+];
+if (!localStorage.getItem(K.cats)) localStorage.setItem(K.cats, JSON.stringify(defaultCats));
+if (!localStorage.getItem(K.forms)) localStorage.setItem(K.forms, JSON.stringify(defaultForms));
+if (!localStorage.getItem(K.counter)) localStorage.setItem(K.counter, '4');
+const db = {
+getForms: () => JSON.parse(localStorage.getItem(K.forms)) || [],
+saveForms: (data) => localStorage.setItem(K.forms, JSON.stringify(data)),
+getCats: () => JSON.parse(localStorage.getItem(K.cats)) || [],
+saveCats: (data) => localStorage.setItem(K.cats, JSON.stringify(data)),
+nextId: () => {
+let id = parseInt(localStorage.getItem(K.counter)) || 1;
+localStorage.setItem(K.counter, (id + 1).toString());
+return id;
+}
+};
+const auth = {
+isLogin: () => !!sessionStorage.getItem(K.admin),
+login: (user, pass) => {
+if (user === 'admin' && pass === 'admin123') {
+sessionStorage.setItem(K.admin, 'true');
+return true;
+}
+return false;
+},
+logout: () => {
+sessionStorage.removeItem(K.admin);
+router.go('#/admin');
+}
+};
+const ui = {
+toast: (msg) => {
+const t = document.getElementById('toast');
+t.textContent = msg; t.style.display = 'block';
+setTimeout(() => t.style.display = 'none', 2500);
+},
+updateNav: (hash) => {
+document.querySelectorAll('#site-nav a').forEach(a => a.classList.remove('active'));
+if (hash === '#/' || hash === '') document.getElementById('nav-home')?.classList.add('active');
+if (hash.startsWith('#/admin')) document.getElementById('nav-admin')?.classList.add('active');
+}
+};
+let filterState = { search: '', cat: '', page: 1 };
+let tempImages = [];
+const pages = {
+catalog: () => {
+const forms = db.getForms();
+const cats = db.getCats();
+let filtered = forms.filter(f => {
+const mSearch = f.name.toLowerCase().includes(filterState.search.toLowerCase()) || f.desc.toLowerCase().includes(filterState.search.toLowerCase());
+const mCat = !filterState.cat || f.catId == filterState.cat;
+return mSearch && mCat;
+});
+const perPage = 6;
+const totalPages = Math.ceil(filtered.length / perPage) || 1;
+if (filterState.page > totalPages) filterState.page = totalPages;
+const start = (filterState.page - 1) * perPage;
+const pageData = filtered.slice(start, start + perPage);
+let catOptions = cats.map(c => <option value="${c.id}" ${filterState.cat == c.id ? 'selected' : ''}>${c.name}</option>).join('');
+let cardsHtml = pageData.map(f => {
+const cName = cats.find(c => c.id == f.catId)?.name || 'Общая';
+const img = f.images && f.images.length ? f.images[0] : DEFAULT_IMG;
+return <a href="#/form/${f.id}" class="card"> <div class="card-img"><img src="${img}" alt="${f.name}"></div> <div class="card-body"> <span class="tag">${cName}</span> <h3>${f.name}</h3> <p>${f.desc}</p> <div class="card-footer"> <span>👁️ ${f.views || 0}</span> <span style="color: var(--accent); font-weight:600;">Подробнее →</span> </div> </div> </a>;
+}).join('');
+if (!cardsHtml) cardsHtml = <div style="grid-column: 1/-1; text-align:center; padding:40px; color:var(--muted);">Ничего не найдено</div>;
+let app = document.getElementById('app');
+app.innerHTML = <h2>Каталог форм кузова</h2> <div class="toolbar"> <input type="text" id="search-in" class="form-control" placeholder="Поиск по названию или описанию..." value="${filterState.search}"> <select id="cat-sel" class="form-control"> <option value="">Все категории</option> ${catOptions} </select> </div> <div class="grid">${cardsHtml}</div> <div class="pagination"> <button id="p-prev" class="btn sm ${filterState.page === 1 ? 'disabled' : ''}">← Назад</button> <span>Страница ${filterState.page} из ${totalPages}</span> <button id="p-next" class="btn sm ${filterState.page === totalPages ? 'disabled' : ''}">Вперед →</button> </div>;
+document.getElementById('search-in').addEventListener('input', (e) => { filterState.search = e.target.value; filterState.page = 1; pages.catalog(); });
+document.getElementById('cat-sel').addEventListener('change', (e) => { filterState.cat = e.target.value; filterState.page = 1; pages.catalog(); });
+document.getElementById('p-prev').addEventListener('click', () => { if (filterState.page > 1) { filterState.page--; pages.catalog(); } });
+document.getElementById('p-next').addEventListener('click', () => { if (filterState.page < totalPages) { filterState.page++; pages.catalog(); } });
+},
+view: (id) => {
+const forms = db.getForms();
+const item = forms.find(f => f.id == id);
+if (!item) { document.getElementById('app').innerHTML = <h2>Запись не найдена</h2><a href="#/">На главную</a>; return; }
+item.views = (item.views || 0) + 1;
+db.saveForms(forms);
+const cats = db.getCats();
+const cName = cats.find(c => c.id == item.catId)?.name || 'Общая';
+const imgs = item.images && item.images.length ? item.images : [DEFAULT_IMG];
+let thumbsHtml = imgs.map((img, i) => <div class="thumb ${i===0?'active':''}" data-idx="${i}"><img src="${img}"></div>).join('');
+if (imgs.length <= 1) thumbsHtml = '';
+document.getElementById('app').innerHTML = <div style="margin-bottom:20px;"><a href="#/" class="btn sm">← В каталог</a></div> <div class="form-view-grid"> <div> <div class="gallery-main"><img id="main-photo" src="${imgs[0]}"></div> <div class="gallery-thumbs">${thumbsHtml}</div> </div> <div> <span class="tag">${cName}</span> <h1 style="margin: 12px 0; font-size:32px;">${item.name}</h1> <div class="view-info"> <span>👁️ Просмотров: ${item.views}</span> </div> <div style="font-size:16px; color:#333; white-space:pre-wrap;">${item.desc}</div> </div> </div>;
+document.querySelectorAll('.thumb').forEach(t => {
+t.addEventListener('click', function() {
+document.querySelectorAll('.thumb').forEach(x => x.classList.remove('active'));
+this.classList.add('active');
+document.getElementById('main-photo').src = imgs[this.dataset.idx];
+});
+});
+},
+adminLogin: () => {
+document.getElementById('app').innerHTML = `
+
+Вход в панель
+
+Логин
+Пароль
+Войти
+
+
+`;
+document.getElementById('auth-form').addEventListener('submit', (e) => {
+e.preventDefault();
+if (auth.login(document.getElementById('login-user').value, document.getElementById('login-pass').value)) {
+ui.toast('Успешный вход'); router.go('#/admin/dashboard');
+} else {
+ui.toast('Неверные данные');
+}
+});
+},
+adminLayout: (tab, innerRender) => {
+if (!auth.isLogin()) { pages.adminLogin(); return; }
+document.getElementById('app').innerHTML = <div class="admin-layout"> <div class="admin-nav"> <a href="#/admin/dashboard" id="adm-t-dash">Дашборд</a> <a href="#/admin/forms" id="adm-t-forms">Записи</a> <a href="#/admin/cats" id="adm-t-cats">Категории</a> <button id="adm-logout" class="btn danger sm" style="margin-top:20px;">Выйти</button> </div> <div id="admin-content"></div> </div>;
+document.getElementById('adm-logout').addEventListener('click', auth.logout);
+document.getElementById(adm-t-${tab})?.classList.add('active');
+innerRender();
+},
+dashboard: () => {
+pages.adminLayout('dash', () => {
+const forms = db.getForms();
+const cats = db.getCats();
+const totalViews = forms.reduce((acc, f) => acc + (f.views || 0), 0);
+document.getElementById('admin-content').innerHTML = <h2>Статистика справочника</h2> <div class="stats-grid"> <div class="stat-card"><div>Всего записей</div><h3>${forms.length}</h3></div> <div class="stat-card"><div>Категорий</div><h3>${cats.length}</h3></div> <div class="stat-card"><div>Всего просмотров</div><h3>${totalViews}</h3></div> </div>;
+});
+},
+adminForms: () => {
+pages.adminLayout('forms', () => {
+const forms = db.getForms();
+const cats = db.getCats();
+let rows = forms.map(f => {
+const cName = cats.find(c => c.id == f.catId)?.name || '---';
+return `
+${f.id}
+${f.name}
+${cName}
+👁️ ${f.views || 0}
+`;
+}).join('');
+document.getElementById('admin-content').innerHTML = `
+
+Управление записями
++ Новая запись
+
+${rows || 'Записей нет'}
+
+ID
+	Название
+	Категория
+	Просмотры
+	Действия
+
+`;
+});
+},
+deleteForm: (id) => {
+if (!confirm('Удалить эту запись?')) return;
+let forms = db.getForms();
+forms = forms.filter(f => f.id != id);
+db.saveForms(forms);
+ui.toast('Запись удалена');
+pages.adminForms();
+},
+formEdit: (id) => {
+pages.adminLayout('forms', () => {
+const forms = db.getForms();
+const cats = db.getCats();
+const isEdit = !!id;
+const item = isEdit ? forms.find(f => f.id == id) : { name: '', catId: '', desc: '', images: [] };
+if (isEdit && !item) { document.getElementById('admin-content').innerHTML = 'Запись не найдена'; return; }
+tempImages = isEdit ? [...item.images] : [];
+let catOptions = cats.map(c => <option value="${c.id}" ${item.catId == c.id ? 'selected' : ''}>${c.name}</option>).join('');
+document.getElementById('admin-content').innerHTML = `
+${isEdit ? 'Редактирование записи' : 'Новая запись'}
+
+Название кузова
+Категория
+Выберите категорию
+${catOptions}
+
+
+Описание
+${item.desc}
+
+Галерея изображений
+Перетащите файлы сюда или кликните для загрузки
+
+
+
+
+Сохранить
+Отмена
+
+
+`;
+const renderPreviews = () => {
+const p = document.getElementById('previews');
+p.innerHTML = tempImages.map((img, idx) => <div class="preview-item"> <img src="${img}"> <button type="button" class="remove-img" data-idx="${idx}">×</button> </div>).join('');
+p.querySelectorAll('.remove-img').forEach(btn => {
+btn.addEventListener('click', function() {
+tempImages.splice(this.dataset.idx, 1);
+renderPreviews();
+});
+});
+};
+renderPreviews();
+const zone = document.getElementById('upload-zone');
+const finput = document.getElementById('file-input');
+zone.addEventListener('click', () => finput.click());
+const handleFiles = (files) => {
+Array.from(files).forEach(file => {
+const r = new FileReader();
+r.onload = (e) => { tempImages.push(e.target.result); renderPreviews(); };
+r.readAsDataURL(file);
+});
+};
+finput.addEventListener('change', (e) => handleFiles(e.target.files));
+zone.addEventListener('dragover', (e) => { e.preventDefault(); });
+zone.addEventListener('drop', (e) => { e.preventDefault(); handleFiles(e.dataTransfer.files); });
+document.getElementById('edit-form').addEventListener('submit', (e) => {
+e.preventDefault();
+const formsList = db.getForms();
+const payload = {
+id: isEdit ? parseInt(id) : db.nextId(),
+name: document.getElementById('f-name').value.trim(),
+catId: parseInt(document.getElementById('f-cat').value),
+desc: document.getElementById('f-desc').value.trim(),
+images: tempImages,
+views: isEdit ? item.views : 0
+};
+if (isEdit) {
+const idx = formsList.findIndex(f => f.id == id);
+formsList[idx] = payload;
+} else {
+formsList.push(payload);
+}
+db.saveForms(formsList);
+ui.toast('Успешно сохранено');
+router.go('#/admin/forms');
+});
+});
+},
+adminCats: () => {
+pages.adminLayout('cats', () => {
+const cats = db.getCats();
+let rows = cats.map(c => `
+${c.id}
+`).join('');
+document.getElementById('admin-content').innerHTML = `
+
+Управление категориями
+
+
+Добавить
+
+
+${rows || 'Нет категорий'}
+
+ID
+	Название
+	Действия
+
+Сохранить изменения названий
+`;
+document.getElementById('new-cat-form').addEventListener('submit', (e) => {
+e.preventDefault();
+const currentCats = db.getCats();
+const name = document.getElementById('new-cat-name').value.trim();
+const nextCatId = currentCats.length ? Math.max(...currentCats.map(c => c.id)) + 1 : 1;
+currentCats.push({ id: nextCatId, name });
+db.saveCats(currentCats);
+ui.toast('Категория добавлена');
+pages.adminCats();
+});
+document.getElementById('save-cats-btn').addEventListener('click', () => {
+const currentCats = db.getCats();
+document.querySelectorAll('.cat-edit-input').forEach(input => {
+const id = input.dataset.id;
+const val = input.value.trim();
+const c = currentCats.find(x => x.id == id);
+if (c && val) c.name = val;
+});
+db.saveCats(currentCats);
+ui.toast('Названия обновлены');
+pages.adminCats();
+});
+});
+},
+deleteCat: (id) => {
+if (!confirm('Удалить категорию? Связанные записи останутся без категории.')) return;
+let cats = db.getCats();
+cats = cats.filter(c => c.id != id);
+db.saveCats(cats);
+ui.toast('Категория удалена');
+pages.adminCats();
+}
+};
+const router = {
+routes: [
+{ route: /^#/$/, handler: pages.catalog },
+{ route: /^#/form/(\d+)$/, handler: pages.view },
+{ route: /^#/admin$/, handler: pages.adminForms },
+{ route: /^#/admin/dashboard$/, handler: pages.dashboard },
+{ route: /^#/admin/forms$/, handler: pages.adminForms },
+{ route: /^#/admin/forms/new$/, handler: () => pages.formEdit(null) },
+{ route: /^#/admin/forms/edit/(\d+)$/, handler: pages.formEdit },
+{ route: /^#/admin/cats$/, handler: pages.adminCats }
+],
+go: (hash) => { window.location.hash = hash; },
+dispatch: () => {
+const hash = window.location.hash || '#/';
+ui.updateNav(hash);
+for (let r of router.routes) {
+const match = hash.match(r.route);
+if (match) {
+match.shift();
+r.handler(...match);
+return;
+}
+}
+document.getElementById('app').innerHTML = <h2>Страница 404 не найдена</h2><a href="#/">Вернуться в каталог</a>;
+}
+};
+window.addEventListener('hashchange', router.dispatch);
+window.addEventListener('DOMContentLoaded', router.dispatch);
